@@ -45,6 +45,18 @@ var rasterSentinel_2_3 = new ImageLayer({
     visible: false
 });
 
+const categories = [
+    {
+        id: 0,
+        name: "algues vertes",
+        geometry: "Polygon"
+    },
+    {
+        id: 1,
+        name: "trait de côte",
+        geometry: "LineString"
+    }
+];
 
 
 var drawings = [];
@@ -87,7 +99,6 @@ function updateLayersVisibility(){
         }
     };
 };
-console.log(updateLayersVisibility);
 
 layerSelect.onchange = function () {
     updateLayersVisibility();
@@ -97,33 +108,39 @@ layerSelect.onchange = function () {
 var typeSelect = document.getElementById('type');
 var reload = document.getElementById('reload');
 
+var categorySelect = document.getElementById('category');
+
 var draw; // global so we can remove it later
 function addInteraction() {
     var value = typeSelect.value;
+    var geom = categories[categorySelect.value].geometry;
+    var name = categories[categorySelect.value].name;
 
     if (value !== 'None') {
         draw = new Draw({
             source: source,
-            type: typeSelect.value,
+            type: geom,
         });
         map.addInteraction(draw);
         draw.on('drawend', function (evt) {
             // sendFeatures(drawings);
 
-            const obj = exportGEOJSON(evt)
+            const obj = exportGEOJSON(evt, name)
             drawings.push(obj);
             console.log(drawings);
         });
     }
 }
 //Take geometry as input, return GEOJSON type
-function exportGEOJSON(e) {
+function exportGEOJSON(e, name) {
+    
     var geom = e.feature.getGeometry();
 
     var format = new GeoJSON();
     geom.transform('EPSG:3857', 'EPSG:4326');
     var feature = new Feature({
-        geometry: geom
+        geometry: geom,
+        name: name
     });
     return format.writeFeature(feature);
 
@@ -132,7 +149,7 @@ function exportGEOJSON(e) {
 /**
  * Handle change event.
  */
-typeSelect.onchange = function () {
+categorySelect.onchange = function () {
     map.removeInteraction(draw);
     addInteraction();
 };

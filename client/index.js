@@ -2,18 +2,49 @@ import 'ol/ol.css';
 import Draw from 'ol/interaction/Draw';
 import Map from 'ol/Map';
 import View from 'ol/View';
-import { OSM, Vector, Vector as VectorSource } from 'ol/source';
-import { Tile as TileLayer, Vector as VectorLayer, Layer } from 'ol/layer';
+import { OSM, Vector as VectorSource, ImageWMS } from 'ol/source';
+import { Image as ImageLayer, Tile as TileLayer, Vector as VectorLayer, Layer } from 'ol/layer';
 import GeoJSON from 'ol/format/GeoJSON';
 import Feature from 'ol/Feature';
 
 import { sendFeatures, getFeatures } from './service'
 
 
-
-var raster = new TileLayer({
+console.log("Hello");
+var rasterOSM = new TileLayer({
+    title: 'OpenStreetMap',
     source: new OSM(),
+    visible: true
 });
+
+var urlWMSGeoBretagne = "https://geobretagne.fr/geoserver/eo/wms";
+var rasterSentinel_2_1 = new ImageLayer({
+    title: 'Sentinel2 vraies couleurs',
+    source: new ImageWMS({
+        url: urlWMSGeoBretagne,
+        params: {"LAYERS": "COMPOCOL_VC_LAST_ACQ_CC_INF10", "SERVICE": "WMS"}
+    }),
+    visible: false
+});
+
+var rasterSentinel_2_2 = new ImageLayer({
+    title: 'Sentinel2 végétation',
+    source: new ImageWMS({
+        url: urlWMSGeoBretagne,
+        params: {"LAYERS": "COMPOCOL_VEG_LAST_ACQ_CC_INF10", "SERVICE": "WMS"}
+    }),
+    visible: false
+});
+
+var rasterSentinel_2_3 = new ImageLayer({
+    title: 'Sentinel2 indice de végétation',
+    source: new ImageWMS({
+        url: urlWMSGeoBretagne,
+        params: {"LAYERS": "NDVI_LAST_ACQ_CC_INF10", "SERVICE": "WMS"}
+    }),
+    visible: false
+});
+
 
 
 var drawings = [];
@@ -26,8 +57,12 @@ var vector = new VectorLayer({
     renderBuffer: 100000
 });
 
+var backgroundLayers = [rasterOSM, rasterSentinel_2_1, rasterSentinel_2_2, rasterSentinel_2_3];
+var layers = backgroundLayers.slice();
+layers.push(vector);
+
 var map = new Map({
-    layers: [raster, vector],
+    layers: layers,
     target: 'map',
     view: new View({
         center: [-11000000, 4600000],
@@ -35,6 +70,28 @@ var map = new Map({
     }),
 });
 
+
+
+
+var layerSelect = document.getElementById('layer');
+function updateLayersVisibility(){
+    var layersNb = backgroundLayers.length;
+    for (var i=0; i<layersNb; i++) {
+        var layer = backgroundLayers[i];
+        console.log(layerSelect.value);
+        if (i == layerSelect.value){
+            layer.setVisible(true);
+        }
+        else{
+            layer.setVisible(false);
+        }
+    };
+};
+console.log(updateLayersVisibility);
+
+layerSelect.onchange = function () {
+    updateLayersVisibility();
+};
 
 
 var typeSelect = document.getElementById('type');

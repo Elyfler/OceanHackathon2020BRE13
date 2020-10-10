@@ -1,21 +1,22 @@
-const url = 'https://localhost:5000/';
+import 'regenerator-runtime/runtime'
+
+const url = 'http://localhost:5000/api/db';
 
 
 
 
-export function getFeatures() {
+export async function getFeatures() {
     const param = {
         headers: {
-            "content-type": "application/json; charset=UTF-8"
+            "content-type": "application/json; charset=UTF-8; ",
+            "Access-Control-Allow-Origin":"*"
         },
         method: "GET"
     }
 
-    fetch(url, param)
-        .then(res => res.body
-        )
-        .catch(error => console.log(error))
-
+    let response = await fetch(url, param)
+    let data = await response.json()
+    return data;
 }
 
 

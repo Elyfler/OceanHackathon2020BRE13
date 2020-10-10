@@ -125,7 +125,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getFeatures = getFeatures;
 exports.sendFeatures = sendFeatures;
-var url = 'https://ocean.free.beeceptor.com';
+var url = 'https://localhost:5000/';
 
 function getFeatures() {
   var param = {
@@ -183,7 +183,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "36987" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "32921" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

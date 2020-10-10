@@ -85,8 +85,5 @@ typeSelect.onchange = function () {
 addInteraction();
 
 reload.onclick = function () {
-    var sourceDraw = new Vector({
-        format: new GeoJSON(),
-        features: drawings
-    });
+    getFeatures();
 }

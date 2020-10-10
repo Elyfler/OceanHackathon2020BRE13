@@ -15,7 +15,7 @@ class JSONEncoder(json.JSONEncoder):
             return str(o)
         return json.JSONEncoder.default(self, o)
 
-app = Flask(__name__)
+app = Flask(__name__,static_folder='../client/dist')
 app.config.from_object(TestingConfig())
 app.json_encoder = JSONEncoder
 

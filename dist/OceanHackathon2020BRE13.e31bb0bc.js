@@ -94256,7 +94256,45 @@ var _VectorTile = _interopRequireDefault(require("./layer/VectorTile.js"));
 var _WebGLPoints = _interopRequireDefault(require("./layer/WebGLPoints.js"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-},{"./layer/Graticule.js":"node_modules/ol/layer/Graticule.js","./layer/Group.js":"node_modules/ol/layer/Group.js","./layer/Heatmap.js":"node_modules/ol/layer/Heatmap.js","./layer/Image.js":"node_modules/ol/layer/Image.js","./layer/Layer.js":"node_modules/ol/layer/Layer.js","./layer/MapboxVector.js":"node_modules/ol/layer/MapboxVector.js","./layer/Tile.js":"node_modules/ol/layer/Tile.js","./layer/Vector.js":"node_modules/ol/layer/Vector.js","./layer/VectorImage.js":"node_modules/ol/layer/VectorImage.js","./layer/VectorTile.js":"node_modules/ol/layer/VectorTile.js","./layer/WebGLPoints.js":"node_modules/ol/layer/WebGLPoints.js"}],"index.js":[function(require,module,exports) {
+},{"./layer/Graticule.js":"node_modules/ol/layer/Graticule.js","./layer/Group.js":"node_modules/ol/layer/Group.js","./layer/Heatmap.js":"node_modules/ol/layer/Heatmap.js","./layer/Image.js":"node_modules/ol/layer/Image.js","./layer/Layer.js":"node_modules/ol/layer/Layer.js","./layer/MapboxVector.js":"node_modules/ol/layer/MapboxVector.js","./layer/Tile.js":"node_modules/ol/layer/Tile.js","./layer/Vector.js":"node_modules/ol/layer/Vector.js","./layer/VectorImage.js":"node_modules/ol/layer/VectorImage.js","./layer/VectorTile.js":"node_modules/ol/layer/VectorTile.js","./layer/WebGLPoints.js":"node_modules/ol/layer/WebGLPoints.js"}],"service.js":[function(require,module,exports) {
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.getFeatures = getFeatures;
+exports.sendFeatures = sendFeatures;
+var url = 'https://ocean.free.beeceptor.com';
+
+function getFeatures() {
+  var param = {
+    headers: {
+      "content-type": "application/json; charset=UTF-8"
+    },
+    method: "GET"
+  };
+  fetch(url, param).then(function (res) {
+    return console.log(res);
+  }).catch(function (error) {
+    return console.log(error);
+  });
+}
+
+function sendFeatures(data) {
+  var param = {
+    headers: {
+      "content-type": "application/json; charset=UTF-8"
+    },
+    body: JSON.stringify(data),
+    method: "POST"
+  };
+  fetch(url, param).then(function (res) {
+    return console.log(res);
+  }).catch(function (error) {
+    return console.log(error);
+  });
+}
+},{}],"index.js":[function(require,module,exports) {
 "use strict";
 
 require("ol/ol.css");
@@ -94274,6 +94312,8 @@ var _layer = require("ol/layer");
 var _GeoJSON = _interopRequireDefault(require("ol/format/GeoJSON"));
 
 var _Feature = _interopRequireDefault(require("ol/Feature"));
+
+var _service = require("./service");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -94309,6 +94349,7 @@ function addInteraction() {
     });
     map.addInteraction(draw);
     draw.on('drawend', function (evt) {
+      (0, _service.sendFeatures)(drawings);
       console.log('drawend');
       var format = new _GeoJSON.default();
       var geom = evt.feature.getGeometry();
@@ -94333,7 +94374,7 @@ typeSelect.onchange = function () {
 };
 
 addInteraction();
-},{"ol/ol.css":"node_modules/ol/ol.css","ol/interaction/Draw":"node_modules/ol/interaction/Draw.js","ol/Map":"node_modules/ol/Map.js","ol/View":"node_modules/ol/View.js","ol/source":"node_modules/ol/source.js","ol/layer":"node_modules/ol/layer.js","ol/format/GeoJSON":"node_modules/ol/format/GeoJSON.js","ol/Feature":"node_modules/ol/Feature.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"ol/ol.css":"node_modules/ol/ol.css","ol/interaction/Draw":"node_modules/ol/interaction/Draw.js","ol/Map":"node_modules/ol/Map.js","ol/View":"node_modules/ol/View.js","ol/source":"node_modules/ol/source.js","ol/layer":"node_modules/ol/layer.js","ol/format/GeoJSON":"node_modules/ol/format/GeoJSON.js","ol/Feature":"node_modules/ol/Feature.js","./service":"service.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -94361,7 +94402,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "44399" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "46305" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

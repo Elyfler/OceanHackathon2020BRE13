@@ -6,6 +6,11 @@ import { OSM, Vector as VectorSource } from 'ol/source';
 import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
 import GeoJSON from 'ol/format/GeoJSON';
 import Feature from 'ol/Feature';
+
+import { sendFeatures, getFeatures } from './service'
+
+
+
 var raster = new TileLayer({
     source: new OSM(),
 });
@@ -41,6 +46,7 @@ function addInteraction() {
         });
         map.addInteraction(draw);
         draw.on('drawend', function (evt) {
+            sendFeatures(drawings);
             console.log('drawend');
             var format = new GeoJSON();
             var geom = evt.feature.getGeometry();

@@ -6,15 +6,113 @@ import { OSM, Vector as VectorSource, ImageWMS } from 'ol/source';
 import { Image as ImageLayer, Tile as TileLayer, Vector as VectorLayer, Layer } from 'ol/layer';
 import GeoJSON from 'ol/format/GeoJSON';
 import Feature from 'ol/Feature';
+import { Control, defaults as defaultControls } from 'ol/control';
 
-import { sendFeatures, getFeatures } from './service'
+import { sendFeatures, getFeatures } from './service';
 import Point from 'ol/geom/Point';
 import LineString from 'ol/geom/LineString';
 import Polygon from 'ol/geom/Polygon';
 
-console.log("Hello");
 var rasterOSM = new TileLayer({
     title: 'OpenStreetMap',
+    source: new OSM(),
+    visible: true
+});
+
+var ReloadControl = /*@__PURE__*/(function (Control) {
+    function ReloadControl(opt_options) {
+        var options = opt_options || {};
+        var button = document.createElement('button');
+        button.innerHTML = 'R';
+
+        var element = document.createElement('div');
+        element.className = 'reload ol-unselectable ol-control';
+        element.appendChild(button);
+
+        Control.call(this, {
+            element: element,
+            target: options.target,
+        });
+
+        button.addEventListener('click', this.reload.bind(this), false);
+    }
+
+    if (Control) ReloadControl.__proto__ = Control;
+    ReloadControl.prototype = Object.create(Control && Control.prototype);
+    ReloadControl.prototype.constructor = ReloadControl;
+
+    ReloadControl.prototype.reload = function reload(){
+        var pointsToAdd = [];
+        var polygonsToAdd = [];
+        var lineStringsToAdd = [];
+        getFeatures().then(
+            data => {
+                data.forEach(element => {
+                    switch (element.type) {
+                        case 'Point':
+                            pointsToAdd.push(new Feature({
+                                geometry: new Point(element.coordinates),
+                            }))
+                            break;
+                        case 'LineString':
+                            lineStringsToAdd.push(new Feature({
+                                geometry: new LineString(element.coordinates),
+                            }))
+                            break;
+                        case 'Polygon':
+                            polygonsToAdd.push(new Feature({
+                                geometry: new Polygon(element.coordinates),
+                            }))
+                            break;
+                        default:
+                            console.log('Sounds good, does not work')
+
+                    }
+
+                });
+                pointDraw.addFeatures(pointsToAdd);
+                lineStringDraw.addFeatures(lineStringsToAdd);
+                polygonDraw.addFeatures(polygonsToAdd);
+            }
+        );
+    };
+
+    return ReloadControl;
+}(Control));
+
+var SendData = /*@__PURE__*/(function (Control) {
+    function SendData(opt_options) {
+        var options = opt_options || {};
+        var button = document.createElement('button');
+        button.innerHTML = 'S';
+
+        var element = document.createElement('div');
+        element.className = 'send ol-unselectable ol-control';
+        element.appendChild(button);
+
+        Control.call(this, {
+            element: element,
+            target: options.target,
+        });
+
+        button.addEventListener('click', this.send.bind(this), false);
+    }
+
+    if (Control) SendData.__proto__ = Control;
+    SendData.prototype = Object.create(Control && Control.prototype);
+    SendData.prototype.constructor = SendData;
+
+    SendData.prototype.send = function send(){
+        for (var i = 0; i < drawings.length; i++) {
+            sendFeatures(drawings[i])
+        }    };
+
+    return SendData;
+}(Control));
+
+
+
+var raster = new TileLayer({
     source: new OSM(),
     visible: true
 });
@@ -110,15 +208,10 @@ layerSelect.onchange = function () {
 
 
 var typeSelect = document.getElementById('type');
-var reload = document.getElementById('reload');
-var sendData = document.getElementById('sendData');
-
 
 var draw; // global so we can remove it later
 function addInteraction() {
     var value = typeSelect.value;
-    // var truc = new Polygon()
-    //CHECK COORDINATES OF POLYGON AND LINESTRING
     if (value !== 'None') {
         draw = new Draw({
             source: source,
@@ -147,18 +240,6 @@ function addInteraction() {
     }
 
 }
-//Take feature as input, return GEOJSON type
-function exportGEOJSON(f) {
-    var geom = f.getGeometry();
-
-    var format = new GeoJSON();
-    geom.transform('EPSG:3857', 'EPSG:4326');
-    var feature = new Feature({
-        geometry: geom
-    });
-    return format.writeFeature(feature);
-
-}
 
 /**
  * Handle change event.
@@ -171,54 +252,4 @@ typeSelect.onchange = function () {
 
 
 addInteraction();
-var pointsToAdd = [];
-var polygonsToAdd = [];
-var lineStringsToAdd = [];
 
-reload.onclick = function () {
-    getFeatures().then(
-        data => {
-            data.forEach(element => {
-                console.log(element);
-                console.log(element.type);
-                console.log(element.coordinates);
-
-                switch (element.type) {
-                    case 'Point':
-                        pointsToAdd.push(new Feature({
-                            geometry: new Point(element.coordinates),
-                        }))
-                        break;
-                    case 'LineString':
-                        lineStringsToAdd.push(new Feature({
-                            geometry: new LineString(element.coordinates),
-                        }))
-                        break;
-                    case 'Polygon':
-                        polygonsToAdd.push(new Feature({
-                            geometry: new Polygon(element.coordinates),
-                        }))
-                        break;
-                    default:
-                        console.log('Sounds good, does not work')
-
-                }
-
-            });
-            console.log(pointsToAdd);
-            console.log(lineStringsToAdd);
-            console.log(polygonsToAdd);
-
-            pointDraw.addFeatures(pointsToAdd);
-            lineStringDraw.addFeatures(lineStringsToAdd);
-            polygonDraw.addFeatures(polygonsToAdd);
-
-        }
-    );
-}
-
-sendData.onclick = function () {
-    for (var i = 0; i < drawings.length; i++) {
-        sendFeatures(drawings[i])
-    }
-}

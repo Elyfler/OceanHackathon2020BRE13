@@ -95093,9 +95093,9 @@ var _source = require("ol/source");
 
 var _layer = require("ol/layer");
 
-var _GeoJSON = _interopRequireDefault(require("ol/format/GeoJSON"));
-
 var _Feature = _interopRequireDefault(require("ol/Feature"));
+
+var _control = require("ol/control");
 
 var _service = require("./service");
 
@@ -95106,6 +95106,91 @@ var _LineString = _interopRequireDefault(require("ol/geom/LineString"));
 var _Polygon = _interopRequireDefault(require("ol/geom/Polygon"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var ReloadControl = /*@__PURE__*/function (Control) {
+  function ReloadControl(opt_options) {
+    var options = opt_options || {};
+    var button = document.createElement('button');
+    button.innerHTML = 'R';
+    var element = document.createElement('div');
+    element.className = 'reload ol-unselectable ol-control';
+    element.appendChild(button);
+    Control.call(this, {
+      element: element,
+      target: options.target
+    });
+    button.addEventListener('click', this.reload.bind(this), false);
+  }
+
+  if (Control) ReloadControl.__proto__ = Control;
+  ReloadControl.prototype = Object.create(Control && Control.prototype);
+  ReloadControl.prototype.constructor = ReloadControl;
+
+  ReloadControl.prototype.reload = function reload() {
+    var pointsToAdd = [];
+    var polygonsToAdd = [];
+    var lineStringsToAdd = [];
+    (0, _service.getFeatures)().then(function (data) {
+      data.forEach(function (element) {
+        switch (element.type) {
+          case 'Point':
+            pointsToAdd.push(new _Feature.default({
+              geometry: new _Point.default(element.coordinates)
+            }));
+            break;
+
+          case 'LineString':
+            lineStringsToAdd.push(new _Feature.default({
+              geometry: new _LineString.default(element.coordinates)
+            }));
+            break;
+
+          case 'Polygon':
+            polygonsToAdd.push(new _Feature.default({
+              geometry: new _Polygon.default(element.coordinates)
+            }));
+            break;
+
+          default:
+            console.log('Sounds good, does not work');
+        }
+      });
+      pointDraw.addFeatures(pointsToAdd);
+      lineStringDraw.addFeatures(lineStringsToAdd);
+      polygonDraw.addFeatures(polygonsToAdd);
+    });
+  };
+
+  return ReloadControl;
+}(_control.Control);
+
+var SendData = /*@__PURE__*/function (Control) {
+  function SendData(opt_options) {
+    var options = opt_options || {};
+    var button = document.createElement('button');
+    button.innerHTML = 'S';
+    var element = document.createElement('div');
+    element.className = 'send ol-unselectable ol-control';
+    element.appendChild(button);
+    Control.call(this, {
+      element: element,
+      target: options.target
+    });
+    button.addEventListener('click', this.send.bind(this), false);
+  }
+
+  if (Control) SendData.__proto__ = Control;
+  SendData.prototype = Object.create(Control && Control.prototype);
+  SendData.prototype.constructor = SendData;
+
+  SendData.prototype.send = function send() {
+    for (var i = 0; i < drawings.length; i++) {
+      (0, _service.sendFeatures)(drawings[i]);
+    }
+  };
+
+  return SendData;
+}(_control.Control);
 
 var raster = new _layer.Tile({
   source: new _source.OSM()
@@ -95122,6 +95207,7 @@ var vector = new _layer.Vector({
   renderBuffer: 100000
 });
 var map = new _Map.default({
+  controls: (0, _control.defaults)().extend([new ReloadControl(), new SendData()]),
   layers: [raster, vector, new _layer.Vector({
     source: polygonDraw
   }), new _layer.Vector({
@@ -95136,13 +95222,10 @@ var map = new _Map.default({
   })
 });
 var typeSelect = document.getElementById('type');
-var reload = document.getElementById('reload');
-var sendData = document.getElementById('sendData');
 var draw; // global so we can remove it later
 
 function addInteraction() {
-  var value = typeSelect.value; // var truc = new Polygon()
-  //CHECK COORDINATES OF POLYGON AND LINESTRING
+  var value = typeSelect.value;
 
   if (value !== 'None') {
     draw = new _Draw.default({
@@ -95183,17 +95266,6 @@ function addInteraction() {
       drawings.push(data);
     });
   }
-} //Take feature as input, return GEOJSON type
-
-
-function exportGEOJSON(f) {
-  var geom = f.getGeometry();
-  var format = new _GeoJSON.default();
-  geom.transform('EPSG:3857', 'EPSG:4326');
-  var feature = new _Feature.default({
-    geometry: geom
-  });
-  return format.writeFeature(feature);
 }
 /**
  * Handle change event.
@@ -95206,55 +95278,7 @@ typeSelect.onchange = function () {
 };
 
 addInteraction();
-var pointsToAdd = [];
-var polygonsToAdd = [];
-var lineStringsToAdd = [];
-
-reload.onclick = function () {
-  (0, _service.getFeatures)().then(function (data) {
-    data.forEach(function (element) {
-      console.log(element);
-      console.log(element.type);
-      console.log(element.coordinates);
-
-      switch (element.type) {
-        case 'Point':
-          pointsToAdd.push(new _Feature.default({
-            geometry: new _Point.default(element.coordinates)
-          }));
-          break;
-
-        case 'LineString':
-          lineStringsToAdd.push(new _Feature.default({
-            geometry: new _LineString.default(element.coordinates)
-          }));
-          break;
-
-        case 'Polygon':
-          polygonsToAdd.push(new _Feature.default({
-            geometry: new _Polygon.default(element.coordinates)
-          }));
-          break;
-
-        default:
-          console.log('Sounds good, does not work');
-      }
-    });
-    console.log(pointsToAdd);
-    console.log(lineStringsToAdd);
-    console.log(polygonsToAdd);
-    pointDraw.addFeatures(pointsToAdd);
-    lineStringDraw.addFeatures(lineStringsToAdd);
-    polygonDraw.addFeatures(polygonsToAdd);
-  });
-};
-
-sendData.onclick = function () {
-  for (var i = 0; i < drawings.length; i++) {
-    (0, _service.sendFeatures)(drawings[i]);
-  }
-};
-},{"ol/ol.css":"node_modules/ol/ol.css","ol/interaction/Draw":"node_modules/ol/interaction/Draw.js","ol/Map":"node_modules/ol/Map.js","ol/View":"node_modules/ol/View.js","ol/source":"node_modules/ol/source.js","ol/layer":"node_modules/ol/layer.js","ol/format/GeoJSON":"node_modules/ol/format/GeoJSON.js","ol/Feature":"node_modules/ol/Feature.js","./service":"service.js","ol/geom/Point":"node_modules/ol/geom/Point.js","ol/geom/LineString":"node_modules/ol/geom/LineString.js","ol/geom/Polygon":"node_modules/ol/geom/Polygon.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"ol/ol.css":"node_modules/ol/ol.css","ol/interaction/Draw":"node_modules/ol/interaction/Draw.js","ol/Map":"node_modules/ol/Map.js","ol/View":"node_modules/ol/View.js","ol/source":"node_modules/ol/source.js","ol/layer":"node_modules/ol/layer.js","ol/Feature":"node_modules/ol/Feature.js","ol/control":"node_modules/ol/control.js","./service":"service.js","ol/geom/Point":"node_modules/ol/geom/Point.js","ol/geom/LineString":"node_modules/ol/geom/LineString.js","ol/geom/Polygon":"node_modules/ol/geom/Polygon.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;

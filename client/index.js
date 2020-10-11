@@ -200,6 +200,7 @@ var categorySelect = document.getElementById('category');
 var draw; // global so we can remove it later
 function addInteraction() {
     var geom = categories[categorySelect.value].geometry;
+    console.log(geom);
     var name = categories[categorySelect.value].name;
 
 
@@ -232,6 +233,10 @@ function addInteraction() {
 
 }
 
+categorySelect.onchange = function () {
+    map.removeInteraction(draw);
+    addInteraction();
+};
 
 addInteraction();
 var fsControl = new FullScreen({});

@@ -95722,6 +95722,15 @@ var rasterOSM = new _layer.Tile({
   source: new _source.OSM(),
   visible: true
 });
+var categories = [{
+  id: 0,
+  name: "algues vertes",
+  geometry: "Polygon"
+}, {
+  id: 1,
+  name: "trait de côte",
+  geometry: "LineString"
+}];
 
 var ReloadControl = /*@__PURE__*/function (Control) {
   function ReloadControl(opt_options) {
@@ -95876,18 +95885,18 @@ var map = new _Map.default({
     center: [-11000000, 4600000],
     zoom: 4
   })
-}); // var layerSelect = document.getElementById('layer');
-
-var typeSelect = document.getElementById('type');
+});
+var categorySelect = document.getElementById('category');
 var draw; // global so we can remove it later
 
 function addInteraction() {
-  var value = typeSelect.value;
+  var geom = categories[categorySelect.value].geometry;
+  var name = categories[categorySelect.value].name;
 
-  if (value !== 'None') {
+  if (categorySelect.value !== 'None') {
     draw = new _Draw.default({
       source: source,
-      type: typeSelect.value
+      type: geom
     });
     map.addInteraction(draw);
     draw.on('drawend', function (evt) {
@@ -95897,9 +95906,10 @@ function addInteraction() {
       console.log(feat.getGeometry());
       var data;
 
-      switch (value) {
+      switch (geom) {
         case 'Point':
           data = {
+            name: name,
             type: "Point",
             coordinates: feat.getGeometry().getCoordinates()
           };
@@ -95907,6 +95917,7 @@ function addInteraction() {
 
         case 'LineString':
           data = {
+            name: name,
             type: "LineString",
             coordinates: feat.getGeometry().getCoordinates()
           };
@@ -95914,6 +95925,7 @@ function addInteraction() {
 
         case 'Polygon':
           data = {
+            name: name,
             type: "Polygon",
             coordinates: feat.getGeometry().getCoordinates()
           };
@@ -95924,15 +95936,6 @@ function addInteraction() {
     });
   }
 }
-/**
- * Handle change event.
- */
-
-
-typeSelect.onchange = function () {
-  map.removeInteraction(draw);
-  addInteraction();
-};
 
 addInteraction();
 var fsControl = new _control.FullScreen({});
@@ -95971,7 +95974,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "42195" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "39271" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

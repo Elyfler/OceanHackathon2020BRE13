@@ -19,6 +19,20 @@ var rasterOSM = new TileLayer({
     visible: true
 });
 
+
+const categories = [
+    {
+        id: 0,
+        name: "algues vertes",
+        geometry: "Polygon"
+    },
+    {
+        id: 1,
+        name: "trait de côte",
+        geometry: "LineString"
+    }
+];
+
 var ReloadControl = /*@__PURE__*/(function (Control) {
     function ReloadControl(opt_options) {
         var options = opt_options || {};
@@ -181,21 +195,18 @@ var map = new Map({
     }),
 });
 
-
-
-
-// var layerSelect = document.getElementById('layer');
-
-
-var typeSelect = document.getElementById('type');
+var categorySelect = document.getElementById('category');
 
 var draw; // global so we can remove it later
 function addInteraction() {
-    var value = typeSelect.value;
-    if (value !== 'None') {
+    var geom = categories[categorySelect.value].geometry;
+    var name = categories[categorySelect.value].name;
+
+
+    if (categorySelect.value !== 'None') {
         draw = new Draw({
             source: source,
-            type: typeSelect.value,
+            type: geom,
         });
         map.addInteraction(draw);
         draw.on('drawend', function (evt) {
@@ -204,15 +215,15 @@ function addInteraction() {
             var feat = evt.feature;
             console.log(feat.getGeometry())
             var data;
-            switch (value) {
+            switch (geom) {
                 case 'Point':
-                    data = { type: "Point", coordinates: feat.getGeometry().getCoordinates() }
+                    data = { name: name, type: "Point", coordinates: feat.getGeometry().getCoordinates() }
                     break;
                 case 'LineString':
-                    data = { type: "LineString", coordinates: feat.getGeometry().getCoordinates() }
+                    data = { name: name, type: "LineString", coordinates: feat.getGeometry().getCoordinates() }
                     break;
                 case 'Polygon':
-                    data = { type: "Polygon", coordinates: feat.getGeometry().getCoordinates() }
+                    data = { name: name, type: "Polygon", coordinates: feat.getGeometry().getCoordinates() }
                     break;
             }
             drawings.push(data);
@@ -220,15 +231,6 @@ function addInteraction() {
     }
 
 }
-
-/**
- * Handle change event.
- */
-typeSelect.onchange = function () {
-    map.removeInteraction(draw);
-    addInteraction();
-};
-
 
 
 addInteraction();

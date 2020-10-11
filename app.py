@@ -1,6 +1,4 @@
-from config import TestingConfig
-
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from pymongo import MongoClient
 import os
 import json
@@ -15,8 +13,8 @@ class JSONEncoder(json.JSONEncoder):
             return str(o)
         return json.JSONEncoder.default(self, o)
 
-app = Flask(__name__,static_folder='../client/dist')
-app.config.from_object(TestingConfig())
+app = Flask(__name__)
+app.config.from_object(os.environ['QUALISAT_MODE'])
 app.json_encoder = JSONEncoder
 
 client = MongoClient()
@@ -26,7 +24,7 @@ geodata_collection = db.geodata
 
 @app.route('/')
 def index():
-    return "Hello World!"
+    return send_from_directory(app.config['STATIC_FOLDER'], 'index.html')
 
 @app.route("/api/db", methods=["POST", "GET"])
 def data():

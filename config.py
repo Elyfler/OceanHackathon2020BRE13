@@ -7,10 +7,12 @@ class Config(object):
     DEBUG = False
     TESTING = False
     CSRF_ENABLED = True
+    STATIC_FOLDER = "client/dist"
 
 
 class ProductionConfig(Config):
     DEBUG = False
+    MONGODB_HOST = "mongodb-oceanhack.alwaysdata.net"
 
 
 class StagingConfig(Config):
@@ -25,4 +27,4 @@ class DevelopmentConfig(Config):
 
 class TestingConfig(Config):
     TESTING = True
-    UPLOAD_FOLDER = "uploads"
+    MONGODB_HOST = None

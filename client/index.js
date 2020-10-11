@@ -2,16 +2,21 @@ import 'ol/ol.css';
 import Draw from 'ol/interaction/Draw';
 import Map from 'ol/Map';
 import View from 'ol/View';
+<<<<<<< HEAD
 import { OSM, Vector as VectorSource, ImageWMS } from 'ol/source';
 import { Image as ImageLayer, Tile as TileLayer, Vector as VectorLayer, Layer } from 'ol/layer';
 import GeoJSON from 'ol/format/GeoJSON';
+=======
+import { OSM, Vector as VectorSource } from 'ol/source';
+import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
+>>>>>>> e3dc1b6... Added fullscreen button
 import Feature from 'ol/Feature';
-import { Control, defaults as defaultControls } from 'ol/control';
-
+import { FullScreen, Control, defaults as defaultControls } from 'ol/control';
 import { sendFeatures, getFeatures } from './service';
 import Point from 'ol/geom/Point';
 import LineString from 'ol/geom/LineString';
 import Polygon from 'ol/geom/Polygon';
+import LayerSwitcher from './node_modules/ol-layerswitcher/src/ol-layerswitcher'
 
 var rasterOSM = new TileLayer({
     title: 'OpenStreetMap',
@@ -41,7 +46,7 @@ var ReloadControl = /*@__PURE__*/(function (Control) {
     ReloadControl.prototype = Object.create(Control && Control.prototype);
     ReloadControl.prototype.constructor = ReloadControl;
 
-    ReloadControl.prototype.reload = function reload(){
+    ReloadControl.prototype.reload = function reload() {
         var pointsToAdd = [];
         var polygonsToAdd = [];
         var lineStringsToAdd = [];
@@ -102,10 +107,11 @@ var SendData = /*@__PURE__*/(function (Control) {
     SendData.prototype = Object.create(Control && Control.prototype);
     SendData.prototype.constructor = SendData;
 
-    SendData.prototype.send = function send(){
+    SendData.prototype.send = function send() {
         for (var i = 0; i < drawings.length; i++) {
             sendFeatures(drawings[i])
-        }    };
+        }
+    };
 
     return SendData;
 }(Control));
@@ -252,4 +258,28 @@ typeSelect.onchange = function () {
 
 
 addInteraction();
+var fsControl = new FullScreen({});
+map.addControl(fsControl);
 
+var lsControl = new LayerSwitcher({
+    layers: [{
+        layer: VectorLayer,
+        config: {
+            title: "OSM",
+            description: "Couche OpenStreet Map",
+        }
+    }, {
+        layer: new VectorLayer(),
+        config: {
+            title: "Autre",
+            description: "Autre",
+        }
+    }
+
+    ],
+    options: {
+        collapsed: true
+    }
+});
+
+map.addControl(lsControl)

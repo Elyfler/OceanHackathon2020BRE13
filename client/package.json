@@ -12,7 +12,8 @@
   "license": "ISC",
   "dependencies": {
     "babel-polyfill": "^6.26.0",
-    "ol": "^6.4.3"
+    "ol": "^6.4.3",
+    "ol-layerswitcher": "^3.7.0"
   },
   "devDependencies": {
     "parcel-bundler": "^1.12.4"

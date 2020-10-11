@@ -95117,7 +95117,9 @@ var CSS_PREFIX = 'layer-switcher-';
 
 class LayerSwitcher extends _Control.default {
   constructor(opt_options) {
-    var options = opt_options || {}; // TODO Next: Rename to showButtonTitle
+    var options = opt_options || {};
+    console.log(opt_options.startActive);
+    console.log(options.startActive); // TODO Next: Rename to showButtonTitle
 
     var tipLabel = options.tipLabel ? options.tipLabel : 'Legend'; // TODO Next: Rename to hideButtonTitle
 
@@ -95150,6 +95152,7 @@ class LayerSwitcher extends _Control.default {
     element.appendChild(button);
     this.panel = document.createElement('div');
     this.panel.className = 'panel';
+    this.panel.style = 'display: none;';
     element.appendChild(this.panel);
     LayerSwitcher.enableTouchScroll_(this.panel);
     var this_ = this;
@@ -95161,7 +95164,7 @@ class LayerSwitcher extends _Control.default {
       // TODO Next: Remove in favour of layer-switcher-activation-mode-click
       element.classList.add('activationModeClick');
 
-      if (this.startActive) {
+      if (!this.startActive) {
         button.textContent = collapseLabel;
         button.setAttribute('title', collapseTipLabel);
         button.setAttribute('aria-label', collapseTipLabel);
@@ -95172,12 +95175,12 @@ class LayerSwitcher extends _Control.default {
 
         if (this_.element.classList.contains(this_.shownClassName)) {
           this_.hidePanel();
-          button.textContent = label;
+          button.textContent = collapseLabel;
           button.setAttribute('title', tipLabel);
           button.setAttribute('aria-label', tipLabel);
         } else {
           this_.showPanel();
-          button.textContent = collapseLabel;
+          button.textContent = label;
           button.setAttribute('title', collapseTipLabel);
           button.setAttribute('aria-label', collapseTipLabel);
         }
@@ -95241,6 +95244,8 @@ class LayerSwitcher extends _Control.default {
 
 
   showPanel() {
+    this.panel.style = 'display: inline;';
+
     if (!this.element.classList.contains(this.shownClassName)) {
       this.element.classList.add(this.shownClassName);
       this.renderPanel();
@@ -95252,6 +95257,8 @@ class LayerSwitcher extends _Control.default {
 
 
   hidePanel() {
+    this.panel.style = 'display: none;';
+
     if (this.element.classList.contains(this.shownClassName)) {
       this.element.classList.remove(this.shownClassName);
     }
@@ -95286,7 +95293,8 @@ class LayerSwitcher extends _Control.default {
 
 
   static renderPanel(map, panel, options) {
-    // Create the event.
+    console.log(options); // Create the event.
+
     var render_event = new Event('render'); // Dispatch the event.
 
     panel.dispatchEvent(render_event);
@@ -95691,6 +95699,8 @@ var _source = require("ol/source");
 
 var _layer = require("ol/layer");
 
+var _Group = _interopRequireDefault(require("ol/layer/Group"));
+
 var _Feature = _interopRequireDefault(require("ol/Feature"));
 
 var _control = require("ol/control");
@@ -95706,6 +95716,12 @@ var _Polygon = _interopRequireDefault(require("ol/geom/Polygon"));
 var _olLayerswitcher = _interopRequireDefault(require("./node_modules/ol-layerswitcher/src/ol-layerswitcher"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var rasterOSM = new _layer.Tile({
+  title: 'OpenStreetMap',
+  source: new _source.OSM(),
+  visible: true
+});
 
 var ReloadControl = /*@__PURE__*/function (Control) {
   function ReloadControl(opt_options) {
@@ -95792,8 +95808,39 @@ var SendData = /*@__PURE__*/function (Control) {
   return SendData;
 }(_control.Control);
 
-var raster = new _layer.Tile({
-  source: new _source.OSM()
+var urlWMSGeoBretagne = "https://geobretagne.fr/geoserver/eo/wms";
+var rasterSentinel_2_1 = new _layer.Image({
+  title: 'Sentinel2 vraies couleurs',
+  source: new _source.ImageWMS({
+    url: urlWMSGeoBretagne,
+    params: {
+      "LAYERS": "COMPOCOL_VC_LAST_ACQ_CC_INF10",
+      "SERVICE": "WMS"
+    }
+  }),
+  visible: false
+});
+var rasterSentinel_2_2 = new _layer.Image({
+  title: 'Sentinel2 végétation',
+  source: new _source.ImageWMS({
+    url: urlWMSGeoBretagne,
+    params: {
+      "LAYERS": "COMPOCOL_VEG_LAST_ACQ_CC_INF10",
+      "SERVICE": "WMS"
+    }
+  }),
+  visible: false
+});
+var rasterSentinel_2_3 = new _layer.Image({
+  title: 'Sentinel2 indice de végétation',
+  source: new _source.ImageWMS({
+    url: urlWMSGeoBretagne,
+    params: {
+      "LAYERS": "NDVI_LAST_ACQ_CC_INF10",
+      "SERVICE": "WMS"
+    }
+  }),
+  visible: false
 });
 var drawings = [];
 var source = new _source.Vector({
@@ -95806,21 +95853,31 @@ var vector = new _layer.Vector({
   source: source,
   renderBuffer: 100000
 });
+var backgroundLayers = [rasterOSM, rasterSentinel_2_1, rasterSentinel_2_2, rasterSentinel_2_3];
+var layers = backgroundLayers.slice();
+layers.push(vector);
+layers.push(new _layer.Vector({
+  source: polygonDraw
+}));
+layers.push(new _layer.Vector({
+  source: pointDraw
+}));
+layers.push(new _layer.Vector({
+  source: lineStringDraw
+}));
 var map = new _Map.default({
-  controls: (0, _control.defaults)().extend([new ReloadControl(), new SendData()]),
-  layers: [raster, vector, new _layer.Vector({
-    source: polygonDraw
-  }), new _layer.Vector({
-    source: pointDraw
-  }), new _layer.Vector({
-    source: lineStringDraw
-  })],
+  controls: [new ReloadControl(), new SendData()],
+  layers: new _Group.default({
+    layers: layers,
+    title: 'Layers'
+  }),
   target: 'map',
   view: new _View.default({
     center: [-11000000, 4600000],
     zoom: 4
   })
-});
+}); // var layerSelect = document.getElementById('layer');
+
 var typeSelect = document.getElementById('type');
 var draw; // global so we can remove it later
 
@@ -95881,25 +95938,12 @@ addInteraction();
 var fsControl = new _control.FullScreen({});
 map.addControl(fsControl);
 var lsControl = new _olLayerswitcher.default({
-  layers: [{
-    layer: _layer.Vector,
-    config: {
-      title: "OSM",
-      description: "Couche OpenStreet Map"
-    }
-  }, {
-    layer: new _layer.Vector(),
-    config: {
-      title: "Autre",
-      description: "Autre"
-    }
-  }],
-  options: {
-    collapsed: true
-  }
+  startActive: false,
+  activationMode: 'click',
+  reverse: false
 });
 map.addControl(lsControl);
-},{"ol/ol.css":"node_modules/ol/ol.css","ol/interaction/Draw":"node_modules/ol/interaction/Draw.js","ol/Map":"node_modules/ol/Map.js","ol/View":"node_modules/ol/View.js","ol/source":"node_modules/ol/source.js","ol/layer":"node_modules/ol/layer.js","ol/Feature":"node_modules/ol/Feature.js","ol/control":"node_modules/ol/control.js","./service":"service.js","ol/geom/Point":"node_modules/ol/geom/Point.js","ol/geom/LineString":"node_modules/ol/geom/LineString.js","ol/geom/Polygon":"node_modules/ol/geom/Polygon.js","./node_modules/ol-layerswitcher/src/ol-layerswitcher":"node_modules/ol-layerswitcher/src/ol-layerswitcher.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
+},{"ol/ol.css":"node_modules/ol/ol.css","ol/interaction/Draw":"node_modules/ol/interaction/Draw.js","ol/Map":"node_modules/ol/Map.js","ol/View":"node_modules/ol/View.js","ol/source":"node_modules/ol/source.js","ol/layer":"node_modules/ol/layer.js","ol/layer/Group":"node_modules/ol/layer/Group.js","ol/Feature":"node_modules/ol/Feature.js","ol/control":"node_modules/ol/control.js","./service":"service.js","ol/geom/Point":"node_modules/ol/geom/Point.js","ol/geom/LineString":"node_modules/ol/geom/LineString.js","ol/geom/Polygon":"node_modules/ol/geom/Polygon.js","./node_modules/ol-layerswitcher/src/ol-layerswitcher":"node_modules/ol-layerswitcher/src/ol-layerswitcher.js"}],"node_modules/parcel-bundler/src/builtins/hmr-runtime.js":[function(require,module,exports) {
 var global = arguments[3];
 var OVERLAY_ID = '__parcel__error__overlay__';
 var OldModule = module.bundle.Module;
@@ -95927,7 +95971,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "32999" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "42195" + '/');
 
   ws.onmessage = function (event) {
     checkedAssets = {};

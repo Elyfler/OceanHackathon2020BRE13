@@ -2,14 +2,9 @@ import 'ol/ol.css';
 import Draw from 'ol/interaction/Draw';
 import Map from 'ol/Map';
 import View from 'ol/View';
-<<<<<<< HEAD
 import { OSM, Vector as VectorSource, ImageWMS } from 'ol/source';
-import { Image as ImageLayer, Tile as TileLayer, Vector as VectorLayer, Layer } from 'ol/layer';
-import GeoJSON from 'ol/format/GeoJSON';
-=======
-import { OSM, Vector as VectorSource } from 'ol/source';
-import { Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
->>>>>>> e3dc1b6... Added fullscreen button
+import { Image as ImageLayer, Tile as TileLayer, Vector as VectorLayer } from 'ol/layer';
+import LayerGroup from 'ol/layer/Group';
 import Feature from 'ol/Feature';
 import { FullScreen, Control, defaults as defaultControls } from 'ol/control';
 import { sendFeatures, getFeatures } from './service';
@@ -116,19 +111,12 @@ var SendData = /*@__PURE__*/(function (Control) {
     return SendData;
 }(Control));
 
-
-
-var raster = new TileLayer({
-    source: new OSM(),
-    visible: true
-});
-
 var urlWMSGeoBretagne = "https://geobretagne.fr/geoserver/eo/wms";
 var rasterSentinel_2_1 = new ImageLayer({
     title: 'Sentinel2 vraies couleurs',
     source: new ImageWMS({
         url: urlWMSGeoBretagne,
-        params: {"LAYERS": "COMPOCOL_VC_LAST_ACQ_CC_INF10", "SERVICE": "WMS"}
+        params: { "LAYERS": "COMPOCOL_VC_LAST_ACQ_CC_INF10", "SERVICE": "WMS" }
     }),
     visible: false
 });
@@ -137,7 +125,7 @@ var rasterSentinel_2_2 = new ImageLayer({
     title: 'Sentinel2 végétation',
     source: new ImageWMS({
         url: urlWMSGeoBretagne,
-        params: {"LAYERS": "COMPOCOL_VEG_LAST_ACQ_CC_INF10", "SERVICE": "WMS"}
+        params: { "LAYERS": "COMPOCOL_VEG_LAST_ACQ_CC_INF10", "SERVICE": "WMS" }
     }),
     visible: false
 });
@@ -146,7 +134,7 @@ var rasterSentinel_2_3 = new ImageLayer({
     title: 'Sentinel2 indice de végétation',
     source: new ImageWMS({
         url: urlWMSGeoBretagne,
-        params: {"LAYERS": "NDVI_LAST_ACQ_CC_INF10", "SERVICE": "WMS"}
+        params: { "LAYERS": "NDVI_LAST_ACQ_CC_INF10", "SERVICE": "WMS" }
     }),
     visible: false
 });
@@ -181,7 +169,11 @@ layers.push(new VectorLayer({
 }));
 
 var map = new Map({
-    layers: layers,
+    controls: [new ReloadControl(), new SendData()],
+    layers: new LayerGroup({
+        layers: layers,
+        title: 'Layers',
+    }),
     target: 'map',
     view: new View({
         center: [-11000000, 4600000],
@@ -192,25 +184,7 @@ var map = new Map({
 
 
 
-var layerSelect = document.getElementById('layer');
-function updateLayersVisibility(){
-    var layersNb = backgroundLayers.length;
-    for (var i=0; i<layersNb; i++) {
-        var layer = backgroundLayers[i];
-        console.log(layerSelect.value);
-        if (i == layerSelect.value){
-            layer.setVisible(true);
-        }
-        else{
-            layer.setVisible(false);
-        }
-    };
-};
-console.log(updateLayersVisibility);
-
-layerSelect.onchange = function () {
-    updateLayersVisibility();
-};
+// var layerSelect = document.getElementById('layer');
 
 
 var typeSelect = document.getElementById('type');
@@ -262,24 +236,8 @@ var fsControl = new FullScreen({});
 map.addControl(fsControl);
 
 var lsControl = new LayerSwitcher({
-    layers: [{
-        layer: VectorLayer,
-        config: {
-            title: "OSM",
-            description: "Couche OpenStreet Map",
-        }
-    }, {
-        layer: new VectorLayer(),
-        config: {
-            title: "Autre",
-            description: "Autre",
-        }
-    }
-
-    ],
-    options: {
-        collapsed: true
-    }
+    startActive: false,
+    activationMode: 'click',
+    reverse: false,
 });
-
 map.addControl(lsControl)
